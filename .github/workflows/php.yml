@@ -1,0 +1,114 @@
+name: php
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+      - next
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - "**.php"
+      - "composer.json"
+      - "phpcs.xml"
+      - "phpstan.neon"
+      - "phpunit.xml"
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+
+    env:
+      DB_NAME: wordpress_test
+      DB_PASS: wordpress_test
+      DB_ROOT_PASS: root
+      DB_USER: wordpress_test
+      PHP_EXTENSIONS: mysqli, redis
+
+    strategy:
+      fail-fast: true
+      matrix:
+        php: ['7.4', '8.0', '8.1', '8.2']
+        wordpress: ['latest', '5.9']
+
+    services:
+      database:
+        image: 'mariadb:10.11.2'
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ env.DB_ROOT_PASS }}
+          MYSQL_DATABASE: ${{ env.DB_NAME }}
+          MYSQL_USER: ${{ env.DB_USER }}
+          MYSQL_PASSWORD: ${{ env.DB_PASS }}
+        ports:
+          - 3306:3306
+        options: --health-cmd "mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 10
+
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: --entrypoint redis-server
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Setup PHP extensions cache environment
+        id: php-ext-cache
+        uses: shivammathur/cache-extensions@v1
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          key: php-${{ matrix.php }}-ext
+
+      - name: Setup PHP extensions cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.php-ext-cache.outputs.dir }}
+          key: ${{ steps.php-ext-cache.outputs.key }}
+          restore-keys: ${{ steps.php-ext-cache.outputs.key }}
+
+      - name: Setup Composer cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: php-${{ matrix.php }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: php-${{ matrix.php }}-composer-
+
+      - name: Setup WordPress cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            /tmp/wordpress/
+            /tmp/wordpress-tests-lib/
+          key: php-${{ matrix.php }}-wp-${{ matrix.wordpress }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --prefer-dist
+
+      - name: Run test
+        run: composer test
+        env:
+          REDIS_HOST: localhost
+          WP_ENVIRONMENT_TYPE: development
+
+          # Variables used in bin/install-wp-tests.sh
+          WP_TESTS_DB_HOST: 127.0.0.1:${{ job.services.database.ports['3306'] }}
+          WP_TESTS_DB_NAME: ${{ env.DB_NAME }}
+          WP_TESTS_DB_PASSWORD: ${{ env.DB_PASS }}
+          WP_TESTS_DB_USER: ${{ env.DB_USER }}
+          WP_TESTS_VERSION: ${{ matrix.wordpress }}

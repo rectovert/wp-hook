@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<phpunit
+	backupGlobals="false"
+	bootstrap="tests/bootstrap.php"
+	cacheResult="true"
+	cacheResultFile="tmp/phpunit/.phpunit.result.cache"
+	colors="true"
+	convertErrorsToExceptions="true"
+	convertNoticesToExceptions="true"
+	convertWarningsToExceptions="true">
+	<php>
+		<const name="WP_ENVIRONMENT_TYPE" value="development"/>
+	</php>
+	<testsuites>
+		<testsuite name="src">
+			<directory phpVersion="7.2" phpVersionOperator=">=" suffix="Test.php">./tests</directory>
+		</testsuite>
+	</testsuites>
+	<filter>
+		<whitelist>
+			<directory suffix=".php">src/</directory>
+		</whitelist>
+	</filter>
+	<logging>
+		<log type="coverage-html" target="tmp/phpunit/coverage" lowUpperBound="30" highLowerBound="80"/>
+	</logging>
+</phpunit>

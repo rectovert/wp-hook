@@ -1,0 +1,62 @@
+{
+	"name": "rectovert/wp-hook",
+	"description": "WordPress hooks with OOP",
+	"keywords": [
+		"wordpress",
+		"action",
+		"filter",
+		"hooks"
+	],
+	"homepage": "https://github.com/rectovert/wp-hook",
+	"license": "GPL-2.0-or-later",
+	"authors": [
+		{
+			"name": "Thoriq Firdaus",
+			"email": "thoriqoe@gmail.com"
+		}
+	],
+	"autoload": {
+		"psr-4": {
+			"Rectovert\\WP\\Hook\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"Rectovert\\WP\\Hook\\Tests\\": "tests/"
+		}
+	},
+	"require": {
+		"php": ">=7.4"
+	},
+	"require-dev": {
+		"dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+		"doctrine/coding-standard": "^11.0",
+		"phpcompatibility/php-compatibility": "^9.3",
+		"phpstan/extension-installer": "^1.3",
+		"phpstan/phpstan": "^1.9",
+		"phpunit/phpunit": "^9.0",
+		"szepeviktor/phpstan-wordpress": "^1.3",
+		"yoast/phpunit-polyfills": "^1.0"
+	},
+	"scripts": {
+		"phpcs:fix": "vendor/bin/phpcbf",
+		"phpcs": "vendor/bin/phpcs",
+		"phpstan": "vendor/bin/phpstan --memory-limit=256M",
+		"phpunit:coverage": "bin/install-wp-tests.sh && vendor/bin/phpunit",
+		"phpunit": "bin/install-wp-tests.sh && vendor/bin/phpunit --no-coverage",
+		"test": [
+			"@phpcs",
+			"@phpstan",
+			"@phpunit"
+		]
+	},
+	"config": {
+		"sort-packages": true,
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true,
+			"phpstan/extension-installer": true
+		}
+	},
+	"prefer-stable": true,
+	"minimum-stability": "stable"
+}
