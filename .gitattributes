@@ -11,8 +11,8 @@
 /.vscode export-ignore
 /bin export-ignore
 /docker-compose.yml export-ignore
-/phpcs.xml.dist export-ignore
-/phpunit.xml.dist export-ignore
+/phpcs.xml export-ignore
+/phpunit.xml export-ignore
 /phpstan.neon export-ignore
 /README.md export-ignore
 /tests export-ignore
